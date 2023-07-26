@@ -93,18 +93,20 @@ export function handleTransfer(event: TransferEvent): void {
   entity.save();
 
   const newOwnerID = event.params.to;
-  let newUser = User.load(newOwnerID);
-  if (!newUser) {
-    newUser = new User(newOwnerID);
-    newUser.address = newOwnerID;
-    newUser.totalOwned.plus(BigInt.fromI32(1));
-    newUser.save();
+  let newOwner = User.load(newOwnerID);
+  if (!newOwner) {
+    newOwner = new User(newOwnerID);
+    newOwner.address = newOwnerID;
+    newOwner.totalOwned = BigInt.fromI32(1);
+  } else {
+    newOwner.totalOwned = newOwner.totalOwned.plus(BigInt.fromI32(1));
   }
+  newOwner.save();
 
-  let oldUser = User.load(event.params.from);
-  if (oldUser) {
-    oldUser.totalOwned.minus(BigInt.fromI32(1));
-    oldUser.save();
+  let oldOwner = User.load(event.params.from);
+  if (oldOwner) {
+    oldOwner.totalOwned = oldOwner.totalOwned.minus(BigInt.fromI32(1));
+    oldOwner.save();
   }
 
   const sheepID = event.params.tokenId.toString();
