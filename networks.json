@@ -1,0 +1,8 @@
+{
+  "goerli": {
+    "SatosheepToken": {
+      "address": "0x3Db6E119FFb68602c2Db503c8A23C8F8AaD49235",
+      "startBlock": 9409644
+    }
+  }
+}
