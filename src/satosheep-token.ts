@@ -17,6 +17,7 @@ import {
   Sheep,
   User,
 } from "../generated/schema";
+import { BigInt } from "@graphprotocol/graph-ts";
 
 export function handleApproval(event: ApprovalEvent): void {
   let entity = new Approval(
@@ -91,7 +92,22 @@ export function handleTransfer(event: TransferEvent): void {
 
   entity.save();
 
-  const sheepID = event.params.tokenId.toHexString();
+  const newOwnerID = event.params.to;
+  let newUser = User.load(newOwnerID);
+  if (!newUser) {
+    newUser = new User(newOwnerID);
+    newUser.address = newOwnerID;
+    newUser.totalOwned.plus(BigInt.fromI32(1));
+    newUser.save();
+  }
+
+  let oldUser = User.load(event.params.from);
+  if (oldUser) {
+    oldUser.totalOwned.minus(BigInt.fromI32(1));
+    oldUser.save();
+  }
+
+  const sheepID = event.params.tokenId.toString();
   let sheep = Sheep.load(sheepID);
   if (!sheep) {
     const sheepContract = SatosheepTokenContract.bind(event.address);
@@ -100,20 +116,13 @@ export function handleTransfer(event: TransferEvent): void {
     sheep.tokenID = event.params.tokenId;
     sheep.createdAtTimestamp = event.block.timestamp;
     sheep.lastTransferedTimestamp = event.block.timestamp;
-    sheep.creator = event.params.to;
-    sheep.owner = event.params.to;
+    sheep.creator = newOwnerID;
+    sheep.owner = newOwnerID;
+  } else {
+    sheep.lastTransferedTimestamp = event.block.timestamp;
+    sheep.owner = newOwnerID;
   }
-  sheep.lastTransferedTimestamp = event.block.timestamp;
-  sheep.owner = event.params.to;
   sheep.save();
-
-  const ownerID = event.params.to;
-  let user = User.load(ownerID);
-  if (!user) {
-    user = new User(ownerID);
-    user.address = ownerID;
-    user.save();
-  }
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {

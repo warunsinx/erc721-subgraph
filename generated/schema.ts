@@ -183,6 +183,19 @@ export class User extends Entity {
     this.set("address", Value.fromBytes(value));
   }
 
+  get totalOwned(): BigInt {
+    let value = this.get("totalOwned");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalOwned(value: BigInt) {
+    this.set("totalOwned", Value.fromBigInt(value));
+  }
+
   get createdSheeps(): SheepLoader {
     return new SheepLoader("User", this.get("id")!.toString(), "createdSheeps");
   }

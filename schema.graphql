@@ -1,4 +1,4 @@
-type Sheep @entity(immutable: true) {
+type Sheep @entity {
   id: ID!
   tokenURI: String!
   tokenID: BigInt!
@@ -8,9 +8,10 @@ type Sheep @entity(immutable: true) {
   owner: User! # address
 }
 
-type User @entity(immutable: true) {
+type User @entity {
   id: Bytes!
   address: Bytes! # address
+  totalOwned: BigInt!
   createdSheeps: [Sheep!]! @derivedFrom(field: "creator")
   sheeps: [Sheep!]! @derivedFrom(field: "owner")
 }
