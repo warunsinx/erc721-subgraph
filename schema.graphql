@@ -1,3 +1,20 @@
+type Sheep @entity(immutable: true) {
+  id: ID!
+  tokenURI: String!
+  tokenID: BigInt!
+  createdAtTimestamp: BigInt!
+  lastTransferedTimestamp: BigInt!
+  creator: User! # address
+  owner: User! # address
+}
+
+type User @entity(immutable: true) {
+  id: Bytes!
+  address: Bytes! # address
+  createdSheeps: [Sheep!]! @derivedFrom(field: "creator")
+  sheeps: [Sheep!]! @derivedFrom(field: "owner")
+}
+
 type Approval @entity(immutable: true) {
   id: Bytes!
   owner: Bytes! # address

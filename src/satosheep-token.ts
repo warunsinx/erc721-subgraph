@@ -3,6 +3,7 @@ import {
   ApprovalForAll as ApprovalForAllEvent,
   OwnershipTransferred as OwnershipTransferredEvent,
   Paused as PausedEvent,
+  SatosheepToken as SatosheepTokenContract,
   Transfer as TransferEvent,
   Unpaused as UnpausedEvent,
 } from "../generated/SatosheepToken/SatosheepToken";
@@ -13,6 +14,8 @@ import {
   Paused,
   Transfer,
   Unpaused,
+  Sheep,
+  User,
 } from "../generated/schema";
 
 export function handleApproval(event: ApprovalEvent): void {
@@ -87,6 +90,30 @@ export function handleTransfer(event: TransferEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  const sheepID = event.params.tokenId.toHexString();
+  let sheep = Sheep.load(sheepID);
+  if (!sheep) {
+    const sheepContract = SatosheepTokenContract.bind(event.address);
+    sheep = new Sheep(sheepID);
+    sheep.tokenURI = sheepContract.tokenURI(event.params.tokenId);
+    sheep.tokenID = event.params.tokenId;
+    sheep.createdAtTimestamp = event.block.timestamp;
+    sheep.lastTransferedTimestamp = event.block.timestamp;
+    sheep.creator = event.params.to;
+    sheep.owner = event.params.to;
+  }
+  sheep.lastTransferedTimestamp = event.block.timestamp;
+  sheep.owner = event.params.to;
+  sheep.save();
+
+  const ownerID = event.params.to;
+  let user = User.load(ownerID);
+  if (!user) {
+    user = new User(ownerID);
+    user.address = ownerID;
+    user.save();
+  }
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {
